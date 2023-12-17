@@ -10,6 +10,16 @@ volumes:
   postgresql_test_data:
 
 services:
+  proxy:
+    container_name: nginx
+    image: nginx
+    volumes:
+      - ./nginx:/etc/nginx/
+    ports:
+      - 80:80
+    networks:
+      - test-network
+
   test1:
     build:
       context: /test1

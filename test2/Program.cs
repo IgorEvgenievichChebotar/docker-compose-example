@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<TestDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
+});
 
 var app = builder.Build();
 
@@ -21,7 +26,7 @@ const string anotherServiceName = "test1";
 
 app.MapGet("/", () => new
     {
-        message = "This is the service for testing communication with another service when using docker-compose." +
+        message = "This is the service for testing communication with another service when using docker-compose. " +
                   $"You can GET /network to check if service {thisServiceName} is available."
     })
     .WithName("root")
@@ -40,8 +45,28 @@ app.MapGet("/network", async () =>
     .WithName($"connectTo->{anotherServiceName}")
     .WithOpenApi();
 
-app.MapGet("/test", () => new { message = $"service {thisServiceName} works properly!" })
+app.MapGet("/test", () => new
+    {
+        message = $"service {thisServiceName} works properly!",
+        takenFromDb = app.Services.GetService<TestDbContext>()?.testobjects?
+            .FirstOrDefault(dbo => dbo.id == 1)?.label
+    })
     .WithName("test")
     .WithOpenApi();
 
 app.Run();
+
+internal class TestDbContext : DbContext
+{
+    public DbSet<TestObject>? testobjects { get; set; }
+
+    public TestDbContext(DbContextOptions options) : base(options)
+    {
+    }
+}
+
+internal class TestObject
+{
+    public int id { get; set; }
+    public string? label { get; set; }
+}
