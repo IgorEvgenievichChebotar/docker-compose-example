@@ -1,0 +1,7 @@
+obj
+bin
+.idea/
+./Secrets.cs
+publish
+.tar
+sqlite
