@@ -21,7 +21,7 @@ const string anotherServiceName = "test2";
 
 app.MapGet("/", () => new
     {
-        message = "This is the service for testing communication with another service when using docker-compose." +
+        message = "This is the service for testing communication with another service when using docker-compose. " +
                   $"You can GET /network to check if service {thisServiceName} is available."
     })
     .WithName("root")

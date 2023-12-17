@@ -6,6 +6,9 @@ networks:
   test-network:
     driver: bridge
 
+volumes:
+  postgresql_test_data:
+
 services:
   test1:
     build:
@@ -13,8 +16,10 @@ services:
       dockerfile: Dockerfile
     container_name: test1
     image: test1:latest
+    depends_on:
+      - database
     ports:
-      - "1234:8080"
+      - 1234:8080
     networks:
       - test-network
 
@@ -24,7 +29,26 @@ services:
       dockerfile: Dockerfile
     container_name: test2
     image: test2:latest
+    depends_on:
+      - database
     ports:
-      - "4321:8080"
+      - 4321:8080
+    networks:
+      - test-network
+
+  database:
+    image: postgres:alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - postgresql_test_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
     networks:
       - test-network
